@@ -60,10 +60,10 @@
            tempDiv.innerHTML = content;
            var rows = tempDiv.querySelectorAll('tr');
            for (var i = 0; i < rows.length; i++) {
-               var td = rows[i].querySelector('td.visible-with-data');
+               var td = rows [i].querySelector('td.visible-with-data');
                var key = td ? td.id : '';
-               if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-                   rows[i].parentNode.removeChild(rows[i]);
+               if (td && td.classList.contains('visible-with-data') && feature.properties [key] == null) {
+                   rows [i].parentNode.removeChild(rows [i]);
                }
            }
            return tempDiv.innerHTML;
@@ -110,7 +110,7 @@
             layer.on({
                 mouseout: function(e) {
                     for (i in e.target._eventParents) {
-                        e.target._eventParents[i].resetStyle(e.target);
+                        e.target._eventParents [i].resetStyle(e.target);
                     }
                 },
                 mouseover: highlightFeature,
@@ -118,15 +118,15 @@
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Nombre:</th>\
-                        <td>' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
+                        <td>' + (feature.properties ['Name'] !== null ? autolinker.link(feature.properties ['Name'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Descripción:</th>\
-                        <td>' + (feature.properties['descriptio'] !== null ? autolinker.link(feature.properties['descriptio'].toLocaleString()) : '') + '</td>\
+                        <td>' + (feature.properties ['descriptio'] !== null ? autolinker.link(feature.properties ['descriptio'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Academicos:</th>\
-                        <td>' + (feature.properties['Academicos'] !== null ? autolinker.link(feature.properties['Academicos'].toLocaleString()) : '') + '</td>\
+                        <td>' + (feature.properties ['Academicos'] !== null ? autolinker.link(feature.properties ['Academicos'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             layer.bindPopup(popupContent, {maxHeight: 400});
@@ -136,22 +136,56 @@
             popup.setContent(updatedContent);
         }
 
-        function style_union_2_0() {
+        // --- INICIO DE LA MODIFICACIÓN PARA COLORES ---
+
+        /**
+         * Función para determinar el color de un punto
+         * basado en el contenido de su propiedad 'Name'.
+         * Puedes personalizar las condiciones y los colores aquí.
+         *
+         * @param {string} nombre El valor de la propiedad 'Name' del elemento.
+         * @returns {string} Un código de color CSS (ej. 'red', '#00FF00', 'rgba(0,0,255,0.7)').
+         */
+        function getColor(nombre) {
+            // Asegúrate de que 'nombre' sea una cadena para usar .includes()
+            const nameLower = String(nombre).toLowerCase();
+
+            if (nameLower.includes('universidad')) {
+                return '#FF0000'; // Rojo para universidades
+            } else if (nameLower.includes('escuela')) {
+                return '#0000FF'; // Azul para escuelas
+            } else if (nameLower.includes('colegio')) {
+                return '#008000'; // Verde para colegios
+            } else if (nameLower.includes('instituto')) {
+                return '#FFA500'; // Naranja para institutos
+            } else {
+                return '#808080'; // Gris para cualquier otro caso
+            }
+        }
+
+        /**
+         * Función de estilo para la capa union_2.
+         * Ahora, el fillColor se obtiene de la función getColor.
+         */
+        function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
                 radius: 4.0,
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: 'rgba(35,35,35,1.0)', // Color del borde del círculo
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(81,231,71,1.0)',
+                fillColor: getColor(feature.properties['Name']), // <--- ¡Aquí se aplica el color dinámico!
                 interactive: true,
             }
         }
+        // --- FIN DE LA MODIFICACIÓN PARA COLORES ---
+
+
         map.createPane('pane_union_2');
         map.getPane('pane_union_2').style.zIndex = 402;
         map.getPane('pane_union_2').style['mix-blend-mode'] = 'normal';
@@ -167,7 +201,7 @@
                     feature: feature,
                     variables: {}
                 };
-                return L.circleMarker(latlng, style_union_2_0(feature));
+                return L.circleMarker(latlng, style_union_2_0(feature)); // Pasa el 'feature' a la función de estilo
             },
         });
         bounds_group.addLayer(layer_union_2);
@@ -192,7 +226,7 @@
             layer: layer_union_2,
             initial: false,
             hideMarkerOnCollapse: true,
-            propertyName: 'Name', // ¡Ojo! El buscador sigue usando 'Name' como propiedad de búsqueda del GeoJSON.
+            propertyName: 'Name',
             zoom: 16
         }));
 
