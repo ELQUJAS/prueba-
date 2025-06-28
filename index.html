@@ -1,3 +1,24 @@
+Centrar el Mapa en la Capa 'union' al Cargar
+¡Claro! Para que tu mapa se centre automáticamente en la extensión completa de la capa union_2 al cargarse, necesitamos hacer un pequeño ajuste en la inicialización del mapa.
+
+Actualmente, el mapa se inicializa con coordenadas y un nivel de zoom fijo:
+
+JavaScript
+
+var map = L.map('map', {
+    zoomControl:true, maxZoom:28, minZoom:1
+}).fitBounds([[-44.07722688524058,-77.37190246581997],[-34.11351005213069,-57.94807434081983]]);
+En lugar de esas coordenadas fijas, utilizaremos el método fitBounds de Leaflet con los límites de tu capa union_2. Sin embargo, hay un detalle importante: la capa union_2 se carga de forma asíncrona (es decir, en segundo plano). No podemos obtener sus límites inmediatamente después de la línea var layer_union_2 = new L.geoJson(...) porque los datos aún no estarán completamente disponibles.
+
+La solución es usar un evento de Leaflet que se dispara cuando la capa GeoJSON ha terminado de cargar sus datos y ha añadido sus elementos al mapa. El evento ideal para esto es el evento 'data:loaded' del plugin leaflet-search, o simplemente asegurarnos de que la capa esté añadida y luego llamar a fitBounds sobre el bounds_group.
+
+La forma más sencilla y robusta, dado tu código, es mover la llamada a setBounds() para que se ejecute después de que layer_union_2 se haya añadido al mapa y sus características hayan sido procesadas. Ya tienes un bounds_group al que se añade layer_union_2, lo que es perfecto.
+
+Script Actualizado
+Aquí está el script con la modificación para centrar el mapa:
+
+HTML
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -51,7 +72,8 @@
         }
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
-        }).fitBounds([[-44.07722688524058,-77.37190246581997],[-34.11351005213069,-57.94807434081983]]);
+        }); // Eliminamos el .fitBounds inicial aquí.
+
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -77,8 +99,13 @@
             popup.update();
           }
         }, true);
-        var bounds_group = new L.featureGroup([]);
+        var bounds_group = new L.featureGroup([]); // Este FeatureGroup es clave
+        
+        // La función setBounds ahora sí realizará la acción de centrar
         function setBounds() {
+            if (bounds_group.getLayers().length > 0) {
+                map.fitBounds(bounds_group.getBounds());
+            }
         }
 
         map.createPane('pane_EsriSatellite_0');
@@ -136,17 +163,7 @@
             popup.setContent(updatedContent);
         }
 
-        // --- FUNCIÓN CLAVE PARA LA CATEGORIZACIÓN POR COLOR ---
-        /**
-         * Determina el color de un punto basándose en el valor de su propiedad 'Name'.
-         * ¡IMPORTANTE!: Ajusta las condiciones ('.includes()') y los colores ('#XXXXXX')
-         * para que coincidan con tus datos y tus preferencias.
-         *
-         * @param {string} nombre El valor de la propiedad 'Name' (Categoría) del elemento.
-         * @returns {string} Un código de color CSS (hexadecimal, nombre de color, rgba, etc.).
-         */
         function getColor(nombre) {
-            // Convertir a minúsculas para hacer la comparación insensible a mayúsculas/minúsculas
             const nameLower = String(nombre).toLowerCase();
 
             if (nameLower.includes('universidad')) {
@@ -157,36 +174,31 @@
                 return '#4DAF4A'; // Verde vibrante
             } else if (nameLower.includes('instituto')) {
                 return '#984EA3'; // Morado
-            } else if (nameLower.includes('centro cultural')) { // Ejemplo de otra categoría
+            } else if (nameLower.includes('centro cultural')) {
                 return '#FF7F00'; // Naranja
-            } else if (nameLower.includes('biblioteca')) { // Otro ejemplo
-                return '#FFFF33'; // Amarillo (considera si es visible sobre el mapa)
+            } else if (nameLower.includes('biblioteca')) {
+                return '#FFFF33'; // Amarillo
             } else {
                 return '#A65628'; // Marrón, para cualquier otra categoría no especificada
             }
         }
 
-        /**
-         * Función de estilo para la capa union_2.
-         * Llama a getColor para obtener el color de relleno para cada punto.
-         */
         function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
                 radius: 4.0,
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)', // Color del borde (generalmente oscuro para contraste)
+                color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: getColor(feature.properties['Name']), // <-- ¡Aquí se aplica el color dinámico!
+                fillColor: getColor(feature.properties['Name']),
                 interactive: true,
             }
         }
-        // --- FIN DE LA MODIFICACIÓN ---
 
         map.createPane('pane_union_2');
         map.getPane('pane_union_2').style.zIndex = 402;
@@ -222,7 +234,19 @@
             collapsed: false
         }).addTo(map);
 
-        setBounds();
+        // --- INICIO DE LA MODIFICACIÓN PARA CENTRAR EL MAPA ---
+        // Llama a setBounds después de que la capa GeoJSON haya sido añadida al mapa
+        // y por lo tanto sus límites estén disponibles en bounds_group.
+        map.on('overlayadd', function(eventLayer) {
+            if (eventLayer.layer === layer_union_2) {
+                setBounds();
+            }
+        });
+
+        // Asegurarse de que se centre si union_2 es la capa activa por defecto
+        // (lo cual debería ser, ya que la añades con map.addLayer(layer_union_2);)
+        setBounds(); // Llama setBounds una vez al inicio también
+        // --- FIN DE LA MODIFICACIÓN ---
 
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
