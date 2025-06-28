@@ -115,14 +115,13 @@
                 },
                 mouseover: highlightFeature,
             });
-            // *** MODIFICACIÓN AQUÍ ***
             var popupContent = '<table>\
                     <tr>\
-                        <th scope="row">Name:</th>\
+                        <th scope="row">Nombre:</th>\
                         <td>' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">descriptio:</th>\
+                        <th scope="row">Descripción:</th>\
                         <td>' + (feature.properties['descriptio'] !== null ? autolinker.link(feature.properties['descriptio'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
@@ -130,7 +129,6 @@
                         <td>' + (feature.properties['Academicos'] !== null ? autolinker.link(feature.properties['Academicos'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-            // *** FIN DE LA MODIFICACIÓN ***
             layer.bindPopup(popupContent, {maxHeight: 400});
             var popup = layer.getPopup();
             var content = popup.getContent();
@@ -194,7 +192,7 @@
             layer: layer_union_2,
             initial: false,
             hideMarkerOnCollapse: true,
-            propertyName: 'Name',
+            propertyName: 'Name', // ¡Ojo! El buscador sigue usando 'Name' como propiedad de búsqueda del GeoJSON.
             zoom: 16
         }));
 
