@@ -51,7 +51,7 @@
         }
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
-        });
+        }); // Eliminamos el .fitBounds inicial aquí.
 
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
@@ -78,8 +78,9 @@
             popup.update();
           }
         }, true);
-        var bounds_group = new L.featureGroup([]);
+        var bounds_group = new L.featureGroup([]); // Este FeatureGroup es clave
         
+        // La función setBounds ahora sí realizará la acción de centrar
         function setBounds() {
             if (bounds_group.getLayers().length > 0) {
                 map.fitBounds(bounds_group.getBounds());
@@ -141,50 +142,42 @@
             popup.setContent(updatedContent);
         }
 
-        // --- FUNCIÓN getColor CON LOS COLORES ESPECÍFICOS SOLICITADOS ---
-        /**
-         * Determina el color de un punto basándose en el valor de su propiedad 'Name'.
-         * ¡IMPORTANTE!: Ajusta las condiciones ('.includes()') y los colores ('#XXXXXX' o nombres)
-         * para que coincidan con tus datos y tus preferencias.
-         *
-         * @param {string} nombre El valor de la propiedad 'Name' (Categoría) del elemento.
-         * @returns {string} Un código de color CSS (hexadecimal, nombre de color, rgba, etc.).
-         */
         function getColor(nombre) {
             const nameLower = String(nombre).toLowerCase();
 
-            // *** AJUSTA ESTAS PALABRAS CLAVE PARA QUE COINCIDAN CON TUS CATEGORÍAS REALES EN 'Name' ***
-            if (nameLower.includes('universidad')) { 
-                return 'red'; // Rojo
-            } else if (nameLower.includes('escuela')) { 
-                return 'yellow'; // Amarillo
-            } else if (nameLower.includes('colegio')) { 
-                return 'deepskyblue'; // Celeste
-            } else if (nameLower.includes('instituto')) { 
-                return 'green'; // Verde
+            if (nameLower.includes('universidad')) {
+                return '#E41A1C'; // Rojo vivo
+            } else if (nameLower.includes('escuela')) {
+                return '#377EB8'; // Azul brillante
+            } else if (nameLower.includes('colegio')) {
+                return '#4DAF4A'; // Verde vibrante
+            } else if (nameLower.includes('instituto')) {
+                return '#984EA3'; // Morado
+            } else if (nameLower.includes('centro cultural')) {
+                return '#FF7F00'; // Naranja
+            } else if (nameLower.includes('biblioteca')) {
+                return '#FFFF33'; // Amarillo
             } else {
-                return '#808080'; // Gris, para cualquier otra categoría no especificada
+                return '#A65628'; // Marrón, para cualquier otra categoría no especificada
             }
         }
 
-        // --- FUNCIÓN DE ESTILO CON EL TAMAÑO DE LOS PUNTOS INCREMENTADO ---
         function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
-                radius: **8.0**, // <-- Tamaño de los puntos
+                radius: 4.0,
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)', // Color del borde de los puntos
+                color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: getColor(feature.properties['Name']), // Color de relleno según la categoría
+                fillColor: getColor(feature.properties['Name']),
                 interactive: true,
             }
         }
-        // --- FIN DE LAS MODIFICACIONES ---
 
         map.createPane('pane_union_2');
         map.getPane('pane_union_2').style.zIndex = 402;
@@ -220,12 +213,19 @@
             collapsed: false
         }).addTo(map);
 
+        // --- INICIO DE LA MODIFICACIÓN PARA CENTRAR EL MAPA ---
+        // Llama a setBounds después de que la capa GeoJSON haya sido añadida al mapa
+        // y por lo tanto sus límites estén disponibles en bounds_group.
         map.on('overlayadd', function(eventLayer) {
             if (eventLayer.layer === layer_union_2) {
                 setBounds();
             }
         });
-        setBounds();
+
+        // Asegurarse de que se centre si union_2 es la capa activa por defecto
+        // (lo cual debería ser, ya que la añades con map.addLayer(layer_union_2);)
+        setBounds(); // Llama setBounds una vez al inicio también
+        // --- FIN DE LA MODIFICACIÓN ---
 
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
