@@ -1,24 +1,3 @@
-Centrar el Mapa en la Capa 'union' al Cargar
-¡Claro! Para que tu mapa se centre automáticamente en la extensión completa de la capa union_2 al cargarse, necesitamos hacer un pequeño ajuste en la inicialización del mapa.
-
-Actualmente, el mapa se inicializa con coordenadas y un nivel de zoom fijo:
-
-JavaScript
-
-var map = L.map('map', {
-    zoomControl:true, maxZoom:28, minZoom:1
-}).fitBounds([[-44.07722688524058,-77.37190246581997],[-34.11351005213069,-57.94807434081983]]);
-En lugar de esas coordenadas fijas, utilizaremos el método fitBounds de Leaflet con los límites de tu capa union_2. Sin embargo, hay un detalle importante: la capa union_2 se carga de forma asíncrona (es decir, en segundo plano). No podemos obtener sus límites inmediatamente después de la línea var layer_union_2 = new L.geoJson(...) porque los datos aún no estarán completamente disponibles.
-
-La solución es usar un evento de Leaflet que se dispara cuando la capa GeoJSON ha terminado de cargar sus datos y ha añadido sus elementos al mapa. El evento ideal para esto es el evento 'data:loaded' del plugin leaflet-search, o simplemente asegurarnos de que la capa esté añadida y luego llamar a fitBounds sobre el bounds_group.
-
-La forma más sencilla y robusta, dado tu código, es mover la llamada a setBounds() para que se ejecute después de que layer_union_2 se haya añadido al mapa y sus características hayan sido procesadas. Ya tienes un bounds_group al que se añade layer_union_2, lo que es perfecto.
-
-Script Actualizado
-Aquí está el script con la modificación para centrar el mapa:
-
-HTML
-
 <!doctype html>
 <html lang="en">
     <head>
