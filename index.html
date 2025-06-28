@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
         <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet-search.css">
@@ -51,7 +51,7 @@
         }
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
-        }); // Eliminamos el .fitBounds inicial aquí.
+        });
 
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
@@ -78,9 +78,8 @@
             popup.update();
           }
         }, true);
-        var bounds_group = new L.featureGroup([]); // Este FeatureGroup es clave
+        var bounds_group = new L.featureGroup([]);
         
-        // La función setBounds ahora sí realizará la acción de centrar
         function setBounds() {
             if (bounds_group.getLayers().length > 0) {
                 map.fitBounds(bounds_group.getBounds());
@@ -156,16 +155,17 @@
             } else if (nameLower.includes('centro cultural')) {
                 return '#FF7F00'; // Naranja
             } else if (nameLower.includes('biblioteca')) {
-                return '#FFFF33'; // Amarillo
+                return '#FFFF33'; // Amarillo (considera si es visible sobre el mapa)
             } else {
                 return '#A65628'; // Marrón, para cualquier otra categoría no especificada
             }
         }
 
+        // --- MODIFICACIÓN: INCREMENTO DEL TAMAÑO DE LOS PUNTOS ---
         function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
-                radius: 4.0,
+                radius: **8.0**, // <-- ¡Aquí se ha aumentado el tamaño!
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -178,6 +178,7 @@
                 interactive: true,
             }
         }
+        // --- FIN DE LA MODIFICACIÓN ---
 
         map.createPane('pane_union_2');
         map.getPane('pane_union_2').style.zIndex = 402;
@@ -213,19 +214,12 @@
             collapsed: false
         }).addTo(map);
 
-        // --- INICIO DE LA MODIFICACIÓN PARA CENTRAR EL MAPA ---
-        // Llama a setBounds después de que la capa GeoJSON haya sido añadida al mapa
-        // y por lo tanto sus límites estén disponibles en bounds_group.
         map.on('overlayadd', function(eventLayer) {
             if (eventLayer.layer === layer_union_2) {
                 setBounds();
             }
         });
-
-        // Asegurarse de que se centre si union_2 es la capa activa por defecto
-        // (lo cual debería ser, ya que la añades con map.addLayer(layer_union_2);)
-        setBounds(); // Llama setBounds una vez al inicio también
-        // --- FIN DE LA MODIFICACIÓN ---
+        setBounds();
 
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
