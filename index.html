@@ -16,14 +16,13 @@
             padding: 0;
             margin: 0;
         }
-        /* --- MODIFICACIÓN: Alineación vertical, margen y TAMAÑO del símbolo de leyenda --- */
+        /* Alineación vertical y tamaño del símbolo de leyenda */
         .leaflet-control-layers-overlays img {
-            vertical-align: middle; 
-            margin-right: 2px;   /* Margen reducido a 2px para acercar el texto */
-            width: 16px;         /* Ancho del símbolo incrementado */
-            height: 16px;        /* Alto del símbolo incrementado */
+            vertical-align: middle;
+            margin-right: 2px;
+            width: 16px;
+            height: 16px;
         }
-        /* --- FIN DE LA MODIFICACIÓN --- */
         </style>
         <title></title>
     </head>
@@ -149,21 +148,23 @@
             popup.setContent(updatedContent);
         }
 
+        // --- FUNCIÓN getColor ACTUALIZADA CON LOS NUEVOS COLORES ---
         function getColor(nombre) {
             const nameLower = String(nombre).toLowerCase();
 
-            if (nameLower.includes('universidad')) { 
-                return 'red';
-            } else if (nameLower.includes('escuela')) { 
-                return 'yellow';
-            } else if (nameLower.includes('colegio')) { 
-                return 'deepskyblue';
-            } else if (nameLower.includes('instituto')) { 
-                return 'green';
+            if (nameLower.includes('monitoreo o muestreo de la especie')) {
+                return 'deepskyblue'; // Celeste
+            } else if (nameLower.includes('iniciativas de educación y difusión')) {
+                return 'yellow'; // Amarillo
+            } else if (nameLower.includes('relevamiento de informacion sobre relacion guigna-humanos')) {
+                return 'lime'; // Verde (usé 'lime' para que sea un verde más vivo y claro que 'green')
+            } else if (nameLower.includes('reducción o mitigación de amenazas')) {
+                return 'red'; // Rojo
             } else {
-                return '#808080';
+                return '#808080'; // Gris, para cualquier otra categoría no especificada
             }
         }
+        // --- FIN DE LA ACTUALIZACIÓN ---
 
         function style_union_2_0(feature) {
             return {
