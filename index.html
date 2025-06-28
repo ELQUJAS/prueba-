@@ -1,3 +1,16 @@
+¡Entendido! Quieres dos cosas para la leyenda de "iniciativas":
+
+Acercar el símbolo al texto "iniciativas": Reduciremos el espacio entre ellos.
+
+Incrementar el tamaño del símbolo: Haremos que el icono del punto en la leyenda sea más grande.
+
+Ambas modificaciones se pueden lograr ajustando el CSS que ya implementamos.
+
+Script Actualizado: Símbolo de Leyenda Más Grande y Más Cercano
+He modificado el estilo CSS para el símbolo de la leyenda. Ahora, el margin-right es menor para acercar el símbolo al texto, y he añadido propiedades width y height para controlar el tamaño de la imagen del símbolo.
+
+HTML
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -16,10 +29,12 @@
             padding: 0;
             margin: 0;
         }
-        /* --- NUEVA MODIFICACIÓN: Alineación vertical del símbolo de leyenda --- */
+        /* --- MODIFICACIÓN: Alineación vertical, margen y TAMAÑO del símbolo de leyenda --- */
         .leaflet-control-layers-overlays img {
-            vertical-align: middle; /* Alinea la imagen verticalmente al centro con el texto */
-            margin-right: 5px;   /* Un pequeño margen para separar el símbolo del texto */
+            vertical-align: middle; 
+            margin-right: 2px;   /* Margen reducido a 2px para acercar el texto */
+            width: 16px;         /* Ancho del símbolo incrementado */
+            height: 16px;        /* Alto del símbolo incrementado */
         }
         /* --- FIN DE LA MODIFICACIÓN --- */
         </style>
