@@ -115,20 +115,22 @@
                 },
                 mouseover: highlightFeature,
             });
+            // *** MODIFICACIÓN AQUÍ ***
             var popupContent = '<table>\
                     <tr>\
-                        <th scope="row">Name</th>\
+                        <th scope="row">Name:</th>\
                         <td>' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">descriptio</th>\
+                        <th scope="row">descriptio:</th>\
                         <td>' + (feature.properties['descriptio'] !== null ? autolinker.link(feature.properties['descriptio'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">Academicos</th>\
+                        <th scope="row">Academicos:</th>\
                         <td>' + (feature.properties['Academicos'] !== null ? autolinker.link(feature.properties['Academicos'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
+            // *** FIN DE LA MODIFICACIÓN ***
             layer.bindPopup(popupContent, {maxHeight: 400});
             var popup = layer.getPopup();
             var content = popup.getContent();
@@ -188,15 +190,13 @@
 
         setBounds();
 
-        // *** MODIFICACIÓN AQUÍ para el zoom del buscador ***
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
             initial: false,
             hideMarkerOnCollapse: true,
             propertyName: 'Name',
-            zoom: 16 // Establece el nivel de zoom al encontrar una búsqueda
+            zoom: 16
         }));
-        // *** FIN DE LA MODIFICACIÓN ***
 
         document.getElementsByClassName('search-button')[0].className +=
             ' fa fa-binoculars';
