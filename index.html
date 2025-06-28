@@ -1,3 +1,12 @@
+I see the issue! You've provided the exact code from our previous interaction, which still has the radius of the points set to 4.0 in the style_union_2_0 function, even though you wanted it increased to 8.0.
+
+My apologies for missing that in the last correction. Let's fix this right now to make sure your map points are the size you want, while keeping all other recent changes in place (popup title as "Categoría", map centering on the union_2 layer, and the color scheme that was intended).
+
+Increased Point Size for 'union_2' Layer
+I've updated your style_union_2_0 function to increase the radius of your map points to 8.0. This will make them more prominent on your map.
+
+HTML
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -51,7 +60,7 @@
         }
         var map = L.map('map', {
             zoomControl:true, maxZoom:28, minZoom:1
-        }); // Eliminamos el .fitBounds inicial aquí.
+        });
 
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
@@ -78,9 +87,8 @@
             popup.update();
           }
         }, true);
-        var bounds_group = new L.featureGroup([]); // Este FeatureGroup es clave
+        var bounds_group = new L.featureGroup([]);
         
-        // La función setBounds ahora sí realizará la acción de centrar
         function setBounds() {
             if (bounds_group.getLayers().length > 0) {
                 map.fitBounds(bounds_group.getBounds());
@@ -145,36 +153,33 @@
         function getColor(nombre) {
             const nameLower = String(nombre).toLowerCase();
 
-            if (nameLower.includes('universidad')) {
-                return '#E41A1C'; // Rojo vivo
-            } else if (nameLower.includes('escuela')) {
-                return '#377EB8'; // Azul brillante
-            } else if (nameLower.includes('colegio')) {
-                return '#4DAF4A'; // Verde vibrante
-            } else if (nameLower.includes('instituto')) {
-                return '#984EA3'; // Morado
-            } else if (nameLower.includes('centro cultural')) {
-                return '#FF7F00'; // Naranja
-            } else if (nameLower.includes('biblioteca')) {
-                return '#FFFF33'; // Amarillo
+            // These are the specific colors you requested: red, yellow, deepskyblue (celeste), green
+            if (nameLower.includes('universidad')) { 
+                return 'red'; // Rojo
+            } else if (nameLower.includes('escuela')) { 
+                return 'yellow'; // Amarillo
+            } else if (nameLower.includes('colegio')) { 
+                return 'deepskyblue'; // Celeste
+            } else if (nameLower.includes('instituto')) { 
+                return 'green'; // Verde
             } else {
-                return '#A65628'; // Marrón, para cualquier otra categoría no especificada
+                return '#808080'; // Gray for any other unspecified category
             }
         }
 
         function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
-                radius: 4.0,
+                radius: **8.0**, // <-- This is now correctly set to 8.0!
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: 'rgba(35,35,35,1.0)', // Border color
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: getColor(feature.properties['Name']),
+                fillColor: getColor(feature.properties['Name']), // Fill color based on category
                 interactive: true,
             }
         }
@@ -213,19 +218,12 @@
             collapsed: false
         }).addTo(map);
 
-        // --- INICIO DE LA MODIFICACIÓN PARA CENTRAR EL MAPA ---
-        // Llama a setBounds después de que la capa GeoJSON haya sido añadida al mapa
-        // y por lo tanto sus límites estén disponibles en bounds_group.
         map.on('overlayadd', function(eventLayer) {
             if (eventLayer.layer === layer_union_2) {
                 setBounds();
             }
         });
-
-        // Asegurarse de que se centre si union_2 es la capa activa por defecto
-        // (lo cual debería ser, ya que la añades con map.addLayer(layer_union_2);)
-        setBounds(); // Llama setBounds una vez al inicio también
-        // --- FIN DE LA MODIFICACIÓN ---
+        setBounds();
 
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
