@@ -81,7 +81,6 @@
         function setBounds() {
         }
 
-        // Definición de las capas base
         map.createPane('pane_EsriSatellite_0');
         map.getPane('pane_EsriSatellite_0').style.zIndex = 400;
         var layer_EsriSatellite_0 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -93,9 +92,6 @@
             minNativeZoom: 0,
             maxNativeZoom: 17
         });
-        // IMPORTANTE: Añade la capa base que quieres que sea la predeterminada al cargar.
-        // Aquí dejo 'Esri Satellite' como predeterminada, si quieres OSM, quita esta línea
-        // y añade `map.addLayer(layer_OpenStreetMap_1);` en su lugar.
         map.addLayer(layer_EsriSatellite_0);
 
         map.createPane('pane_OpenStreetMap_1');
@@ -109,11 +105,7 @@
             minNativeZoom: 0,
             maxNativeZoom: 19
         });
-        // Ya NO se añade aquí. Se manejará con el control de capas.
-        // layer_OpenStreetMap_1; // Esta línea es redundante si no se añade al mapa aquí.
 
-
-        // Definición de la capa de datos GeoJSON
         function pop_union_2(feature, layer) {
             layer.on({
                 mouseout: function(e) {
@@ -179,37 +171,33 @@
             },
         });
         bounds_group.addLayer(layer_union_2);
-        map.addLayer(layer_union_2); // Añade tu capa de datos al mapa
+        map.addLayer(layer_union_2);
 
-
-        // *** MODIFICACIÓN CLAVE PARA SEPARAR CAPAS EN LA LEYENDA ***
-
-        // 1. Define tus capas base en un objeto.
-        // Estas aparecerán con botones de radio (solo una activa a la vez).
         var baseMaps = {
             "Esri Satellite": layer_EsriSatellite_0,
             "OpenStreetMap": layer_OpenStreetMap_1
         };
 
-        // 2. Define tus capas superpuestas en otro objeto.
-        // Estas aparecerán con casillas de verificación (pueden activarse/desactivarse independientemente).
         var overlayMaps = {
             '<img src="legend/union_2.png" /> union': layer_union_2
         };
 
-        // 3. Crea y añade el control de capas al mapa, pasando ambos objetos.
         L.control.layers(baseMaps, overlayMaps, {
-            collapsed: false // Cambia a 'true' si quieres que la leyenda esté cerrada al inicio.
+            collapsed: false
         }).addTo(map);
 
-        // *** FIN DE LA MODIFICACIÓN ***
-
         setBounds();
+
+        // *** MODIFICACIÓN AQUÍ para el zoom del buscador ***
         map.addControl(new L.Control.Search({
             layer: layer_union_2,
             initial: false,
             hideMarkerOnCollapse: true,
-            propertyName: 'Name'}));
+            propertyName: 'Name',
+            zoom: 16 // Establece el nivel de zoom al encontrar una búsqueda
+        }));
+        // *** FIN DE LA MODIFICACIÓN ***
+
         document.getElementsByClassName('search-button')[0].className +=
             ' fa fa-binoculars';
         </script>
