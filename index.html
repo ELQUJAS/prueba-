@@ -161,7 +161,7 @@
         function style_union_2_0(feature) {
             return {
                 pane: 'pane_union_2',
-                radius: **8.0**, // <-- This is now correctly set to 8.0!
+                radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)', // Border color
                 dashArray: '',
@@ -201,9 +201,11 @@
             "OpenStreetMap": layer_OpenStreetMap_1
         };
 
+        // --- MODIFICACIÓN: Cambiar "union" por "iniciativas" en el control de capas ---
         var overlayMaps = {
-            '<img src="legend/union_2.png" /> union': layer_union_2
+            '<img src="legend/union_2.png" /> iniciativas': layer_union_2 // Cambiado aquí
         };
+        // --- FIN DE LA MODIFICACIÓN ---
 
         L.control.layers(baseMaps, overlayMaps, {
             collapsed: false
