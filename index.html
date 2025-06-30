@@ -10,14 +10,14 @@
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet-search.css">
-        <title>Mapa de Iniciativas</title> <style>
+        <title>Mapa de Iniciativas</title>
+        <style>
             html, body, #map {
                 width: 100%;
                 height: 100%;
                 padding: 0;
                 margin: 0;
             }
-            /* Estilos existentes para la alineación del símbolo en el control de capas (si aún se usa para otras capas) */
             .leaflet-control-layers-overlays img {
                 vertical-align: middle;
                 margin-right: 2px;
@@ -31,35 +31,77 @@
                 padding: 10px;
                 border-radius: 5px;
                 box-shadow: 0 0 15px rgba(0,0,0,0.2);
-                line-height: 1.5; /* Espaciado entre líneas */
-                font-family: sans-serif; /* Fuente legible */
-                font-size: 14px; /* Tamaño de fuente para la leyenda */
+                line-height: 1.5;
+                font-family: sans-serif;
+                font-size: 14px;
             }
             .legend-title {
                 font-weight: bold;
-                margin-bottom: 8px; /* Aumentado para mejor separación */
+                margin-bottom: 8px;
                 text-align: center;
-                font-size: 16px; /* Tamaño de fuente para el título */
-                color: #333; /* Color de texto más oscuro */
+                font-size: 16px;
+                color: #333;
             }
             .legend-item {
-                display: flex; /* Para alinear el símbolo y el texto */
-                align-items: center; /* Alineación vertical al centro */
-                margin-bottom: 5px; /* Aumentado para mejor separación entre items */
+                display: flex;
+                align-items: center;
+                margin-bottom: 5px;
             }
             .legend-symbol {
-                width: 14px; /* Tamaño del símbolo de círculo en la leyenda */
+                width: 14px;
                 height: 14px;
-                border-radius: 50%; /* Para que sea un círculo */
-                border: 1px solid rgba(35,35,35,0.8); /* Borde similar al de los puntos */
-                margin-right: 10px; /* Espacio entre el símbolo y el texto */
-                flex-shrink: 0; /* Evita que el símbolo se encoja */
+                border-radius: 50%;
+                border: 1px solid rgba(35,35,35,0.8);
+                margin-right: 10px;
+                flex-shrink: 0;
             }
             /* --- FIN DE ESTILOS DE LEYENDA --- */
+
+            /* --- NUEVOS ESTILOS PARA EL BUSCADOR DE COORDENADAS --- */
+            .coordinates-search-control {
+                position: absolute;
+                top: 10px; /* Ajusta la posición vertical */
+                right: 10px; /* Ajusta la posición horizontal */
+                z-index: 1000; /* Asegura que esté sobre el mapa */
+                background: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                font-family: sans-serif;
+                display: flex; /* Para alinear elementos en fila */
+                gap: 5px; /* Espacio entre los elementos */
+                align-items: center;
+            }
+            .coordinates-search-control input[type="text"] {
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                font-size: 14px;
+                width: 180px; /* Ancho del input */
+            }
+            .coordinates-search-control button {
+                padding: 5px 10px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+            .coordinates-search-control button:hover {
+                background-color: #0056b3;
+            }
+            /* --- FIN DE ESTILOS DEL BUSCADOR DE COORDENADAS --- */
         </style>
     </head>
     <body>
         <div id="map"></div>
+
+        <div class="coordinates-search-control">
+            <input type="text" id="coordInput" placeholder="Latitud, Longitud (ej: -33.45, -70.66)">
+            <button id="searchCoordBtn">Ir</button>
+        </div>
+
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/leaflet.rotatedMarker.js"></script>
@@ -204,17 +246,15 @@
                 const nameLower = String(nombre).toLowerCase();
 
                 if (nameLower.includes('monitoreo o muestreo de la especie')) {
-                    return 'deepskyblue'; // Celeste
+                    return 'deepskyblue';
                 } else if (nameLower.includes('iniciativas de educación y difusión')) {
-                    return 'yellow'; // Amarillo
+                    return 'yellow';
                 } else if (nameLower.includes('relevamiento de informacion sobre relacion guigna-humanos')) {
-                    return 'lime'; // Verde
+                    return 'lime';
                 } else if (nameLower.includes('reducción o mitigación de amenazas')) {
-                    return 'red'; // Rojo
+                    return 'red';
                 }
-                // Eliminada la condición 'else' para "Otras", si el nombre no coincide, no tendrá un color específico aquí.
-                // Si quieres que los puntos sin categoría explícita no aparezcan o tengan otro color, ajusta según necesidad.
-                return '#808080'; // Color por defecto si no coincide con ninguna de las categorías listadas.
+                return '#808080';
             }
 
             function style_union_2_0(feature) {
@@ -298,7 +338,6 @@
                     { name: 'Iniciativas de Educación y difusión', color: 'yellow' },
                     { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
                     { name: 'Reducción o mitigación de amenazas', color: 'red' }
-                    // La categoría "Otras" ha sido eliminada de aquí.
                 ];
 
                 for (var i = 0; i < categories.length; i++) {
@@ -312,6 +351,37 @@
             };
             legend.addTo(map);
             // --- FIN DEL CÓDIGO DE LEYENDA ---
+
+            // --- CÓDIGO PARA EL BUSCADOR DE COORDENADAS ---
+            document.getElementById('searchCoordBtn').addEventListener('click', function() {
+                var coordInput = document.getElementById('coordInput').value;
+                var parts = coordInput.split(',').map(part => parseFloat(part.trim()));
+
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    var lat = parts[0];
+                    var lon = parts[1];
+                    map.setView([lat, lon], 15); // Centra el mapa en las coordenadas con un zoom de 15
+                    
+                    // Opcional: Añadir un marcador temporal en la ubicación buscada
+                    if (window.tempMarker) {
+                        map.removeLayer(window.tempMarker);
+                    }
+                    window.tempMarker = L.marker([lat, lon]).addTo(map)
+                        .bindPopup(`Lat: ${lat}, Lon: ${lon}`).openPopup();
+
+                } else {
+                    alert('Por favor, introduce las coordenadas en el formato "Latitud, Longitud" (ej: -33.45, -70.66).');
+                }
+            });
+
+            // Permite buscar al presionar Enter en el campo de texto
+            document.getElementById('coordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('searchCoordBtn').click();
+                }
+            });
+            // --- FIN DEL CÓDIGO DEL BUSCADOR DE COORDENADAS ---
+
         </script>
     </body>
 </html>
