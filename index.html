@@ -57,19 +57,20 @@
             }
             /* --- FIN DE ESTILOS DE LEYENDA --- */
 
-            /* --- NUEVOS ESTILOS PARA EL BUSCADOR DE COORDENADAS --- */
+            /* --- ESTILOS PARA EL BUSCADOR DE COORDENADAS --- */
             .coordinates-search-control {
                 position: absolute;
-                top: 10px; /* Ajusta la posición vertical */
-                right: 10px; /* Ajusta la posición horizontal */
-                z-index: 1000; /* Asegura que esté sobre el mapa */
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
                 background: white;
                 padding: 10px;
                 border-radius: 5px;
                 box-shadow: 0 0 15px rgba(0,0,0,0.2);
                 font-family: sans-serif;
-                display: flex; /* Para alinear elementos en fila */
-                gap: 5px; /* Espacio entre los elementos */
+                display: flex;
+                gap: 5px;
                 align-items: center;
             }
             .coordinates-search-control input[type="text"] {
@@ -77,7 +78,7 @@
                 border: 1px solid #ccc;
                 border-radius: 3px;
                 font-size: 14px;
-                width: 180px; /* Ancho del input */
+                width: 220px; /* Aumentado para el mensaje más largo */
             }
             .coordinates-search-control button {
                 padding: 5px 10px;
@@ -98,7 +99,7 @@
         <div id="map"></div>
 
         <div class="coordinates-search-control">
-            <input type="text" id="coordInput" placeholder="Latitud, Longitud (ej: -33.45, -70.66)">
+            <input type="text" id="coordInput" placeholder="Latitud, Longitud (ej: -33.456789, -70.661234)">
             <button id="searchCoordBtn">Ir</button>
         </div>
 
@@ -360,17 +361,19 @@
                 if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
                     var lat = parts[0];
                     var lon = parts[1];
-                    map.setView([lat, lon], 15); // Centra el mapa en las coordenadas con un zoom de 15
+                    map.setView([lat, lon], 15);
                     
-                    // Opcional: Añadir un marcador temporal en la ubicación buscada
+                    // Remueve el marcador temporal existente si hay uno
                     if (window.tempMarker) {
                         map.removeLayer(window.tempMarker);
                     }
+                    // Añade un nuevo marcador temporal con la precisión deseada en el popup
                     window.tempMarker = L.marker([lat, lon]).addTo(map)
-                        .bindPopup(`Lat: ${lat}, Lon: ${lon}`).openPopup();
+                        // .toFixed(6) formatea el número a 6 decimales para el popup
+                        .bindPopup(`Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`).openPopup();
 
                 } else {
-                    alert('Por favor, introduce las coordenadas en el formato "Latitud, Longitud" (ej: -33.45, -70.66).');
+                    alert('Por favor, introduce las coordenadas en el formato "Latitud, Longitud" con al menos 6 decimales (ej: -33.456789, -70.661234).');
                 }
             });
 
