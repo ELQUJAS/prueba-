@@ -62,10 +62,32 @@
                 text-align: justify;
             }
             /* --- FIN DE ESTILO PARA JUSTIFICAR TEXTO EN POP-UPS --- */
+
+            /* --- ESTILOS PARA EL RECUADRO DE COORDENADAS DEL CURSOR --- */
+            #coord-display {
+                position: absolute;
+                bottom: 10px; /* Ajusta según si hay otros elementos en la parte inferior */
+                left: 10px;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 8px 12px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                font-family: monospace;
+                font-size: 12px;
+                color: #333;
+                z-index: 1000; /* Asegura que esté por encima del mapa */
+                white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+            }
+            /* --- FIN DE ESTILOS PARA EL RECUADRO DE COORDENADAS DEL CURSOR --- */
         </style>
     </head>
     <body>
         <div id="map"></div>
+
+        <div id="coord-display">
+            Lat/Lng: --.--, --.--<br>
+            UTM: E: ---- N: ---- (Zona: --)
+        </div>
 
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
@@ -316,6 +338,81 @@
             };
             legend.addTo(map);
             // --- FIN DEL CÓDIGO DE LEYENDA ---
+
+            // --- CÓDIGO PARA MOSTRAR COORDENADAS DEL CURSOR (LAT/LNG y UTM) ---
+
+            // Función de conversión Lat/Lng a UTM (simplificada para Zona 19S, Hemisferio Sur)
+            // ADVERTENCIA: Esta es una implementación básica y NO es precisa para todas las zonas UTM.
+            // Para una solución robusta y multizona, se recomienda una librería como proj4js o utm.
+            function latLonToUtm(lat, lon) {
+                const a = 6378137.0; // Radio mayor del elipsoide WGS84
+                const f = 1 / 298.257223563; // Achatamiento del elipsoide WGS84
+                const k0 = 0.9996; // Factor de escala en el meridiano central
+                const E2 = 2 * f - f * f; // Excentricidad al cuadrado
+                const E4 = E2 * E2;
+                const E6 = E4 * E2;
+                const N0 = 10000000.0; // Falso Northing para el hemisferio sur
+
+                const latRad = lat * Math.PI / 180;
+                const lonRad = lon * Math.PI / 180;
+
+                const zoneNum = Math.floor((lon + 180) / 6) + 1;
+                const lonOriginRad = (zoneNum * 6 - 183) * Math.PI / 180;
+
+                const deltaLon = lonRad - lonOriginRad;
+
+                const sinLat = Math.sin(latRad);
+                const cosLat = Math.cos(latRad);
+                const tanLat = Math.tan(latRad);
+
+                const Nu = a / Math.sqrt(1 - E2 * sinLat * sinLat);
+                const Rho = a * (1 - E2) / Math.pow(1 - E2 * sinLat * sinLat, 1.5);
+                const K1 = Nu * cosLat * cosLat / 2;
+                const K2 = Nu * cosLat * cosLat * cosLat * cosLat / 24 * (5 - tanLat * tanLat + 9 * E2 * cosLat * cosLat);
+                const K3 = Nu * cosLat;
+                const K4 = Nu * cosLat * cosLat * cosLat / 6 * (1 - tanLat * tanLat);
+
+                const T = tanLat * tanLat;
+                const C = E2 * cosLat * cosLat / (1 - E2);
+                const A = (lonRad - lonOriginRad) * cosLat;
+
+                const M = a * ((1 - E2 / 4 - 3 * E4 / 64 - 5 * E6 / 256) * latRad -
+                               (3 * E2 / 8 + 3 * E4 / 32 + 45 * E6 / 1024) * sinLat * cosLat +
+                               (15 * E4 / 256 + 45 * E6 / 1024) * sinLat * Math.pow(cosLat, 3) -
+                               (35 * E6 / 3072) * sinLat * Math.pow(cosLat, 5));
+
+                const easting = k0 * Nu * (deltaLon + Math.pow(deltaLon, 3) * (1 - T + C) / 6 + Math.pow(deltaLon, 5) * (5 - 18 * T + T * T + 72 * C - 58 * E2) / 120) + 500000;
+                let northing = k0 * (M + Nu * tanLat * (deltaLon * deltaLon / 2 + Math.pow(deltaLon, 4) * (5 - T + 9 * C + 4 * C * C) / 24 + Math.pow(deltaLon, 6) * (61 - 58 * T + T * T + 600 * C - 330 * E2) / 720));
+
+                if (lat < 0) { // Hemisferio Sur
+                    northing = N0 + northing; // Northing verdadero + Falso Northing
+                }
+
+                return {
+                    easting: Math.round(easting),
+                    northing: Math.round(northing),
+                    zone: zoneNum,
+                    hemisphere: (lat >= 0) ? 'N' : 'S'
+                };
+            }
+
+            var coordDisplay = document.getElementById('coord-display');
+
+            map.on('mousemove', function(e) {
+                var lat = e.latlng.lat.toFixed(6);
+                var lon = e.latlng.lng.toFixed(6);
+
+                var utmCoords = latLonToUtm(e.latlng.lat, e.latlng.lng);
+
+                // Determina el hemisferio para el display UTM
+                let hemisphereDisplay = (e.latlng.lat >= 0) ? 'N' : 'S';
+
+                coordDisplay.innerHTML = `
+                    Lat/Lng: ${lat}, ${lon}<br>
+                    UTM: E: ${utmCoords.easting} N: ${utmCoords.northing} (Zona: ${utmCoords.zone}${hemisphereDisplay})
+                `;
+            });
+            // --- FIN CÓDIGO PARA MOSTRAR COORDENADAS DEL CURSOR ---
 
         </script>
     </body>
