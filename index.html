@@ -1,3 +1,9 @@
+¡Entendido! Vamos a eliminar el código que añade la imagen al mapa.
+
+Aquí tienes el código HTML completo, con la sección de la superposición de imagen completamente retirada:
+
+HTML
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -259,10 +265,13 @@
                 "OpenStreetMap": layer_OpenStreetMap_1
             };
 
+            // Original overlayMaps sin la imagen, para restaurar el control de capas
             var overlayMaps = {
                 "Iniciativas": layer_union_2
             };
 
+            // Asegúrate de que el control de capas se inicialice solo una vez
+            // Si ya tenías esta línea antes, no es necesario duplicarla
             L.control.layers(baseMaps, overlayMaps, {
                 collapsed: false
             }).addTo(map);
@@ -311,34 +320,7 @@
             legend.addTo(map);
             // --- FIN DEL CÓDIGO DE LEYENDA ---
 
-            // --- INICIO CÓDIGO PARA AÑADIR IMAGEN AL MAPA ---
-            // 1. Define la URL de tu imagen
-            var imageUrl = 'img/logo_guina.png'; // ASUME que la imagen está en una carpeta 'img/'
-
-            // 2. Define las coordenadas de las esquinas de la imagen (Noroeste y Sureste)
-            // ESTAS COORDENADAS SON DE EJEMPLO EN SANTIAGO. AJÚSTALAS SEGÚN LA UBICACIÓN Y TAMAÑO DESEADOS.
-            var imageBounds = L.latLngBounds(
-                [ -33.43, -70.68 ], // Latitud y Longitud de la esquina NOROESTE (Top-Left)
-                [ -33.46, -70.65 ]  // Latitud y Longitud de la esquina SURESTE (Bottom-Right)
-            );
-
-            // 3. Crea el L.imageOverlay y añádelo al mapa
-            var imageOverlay = L.imageOverlay(imageUrl, imageBounds, {
-                opacity: 0.8, // Opcional: ajusta la opacidad (0 a 1)
-                interactive: false, // Opcional: si quieres que la imagen responda a clics/eventos
-                alt: 'Logo Grupo Trabajo Güiña' // Texto alternativo para accesibilidad
-            }).addTo(map);
-
-            // Opcional: Añadir la capa de imagen al control de capas para que el usuario pueda activarla/desactivarla
-            overlayMaps["Logo Güiña"] = imageOverlay;
-            L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
-            // Si ya tienes un control de capas, puedes remover la línea anterior y simplemente hacer:
-            // map.removeControl(map.layersControl); // Si ya se añadió antes
-            // L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
-
-
-            // --- FIN CÓDIGO PARA AÑADIR IMAGEN AL MAPA ---
-
+            // Se ha eliminado el código JavaScript para añadir la imagen al mapa.
         </script>
     </body>
 </html>
