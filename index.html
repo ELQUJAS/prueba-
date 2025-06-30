@@ -27,7 +27,8 @@
 
             /* --- ESTILOS PARA LA LEYENDA PERSONALIZADA --- */
             .info.legend {
-                background: white;
+                /* CAMBIO AQUÍ: Fondo blanco con 70% de opacidad (0.7) */
+                background: rgba(255, 255, 255, 0.7);
                 padding: 10px;
                 border-radius: 5px;
                 box-shadow: 0 0 15px rgba(0,0,0,0.2);
@@ -393,7 +394,7 @@
             searchControl.on('search:collapsed', function() {
                 // Se dispara después de search:locationfound también, la limpieza inicial en locationfound es clave.
                 // Aquí solo limpiamos si el buscador se colapsa sin una búsqueda nueva.
-                if (searchControl._lastSearchText === "" && highlightedSearchLayers.length > 0) { // Añadido _lastSearchText para evitar doble limpieza.
+                if (searchControl._lastSearchText === "" && highlightedSearchLayers.length > 0) {
                     clearSearchHighlights();
                 }
             });
