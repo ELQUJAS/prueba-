@@ -102,8 +102,10 @@
         <script src="data/union_2.js"></script>
         <script>
             let highlightLayer;
+            let highlightedSearchLayers = []; // Almacena las capas resaltadas por el buscador
 
             function highlightFeature(e) {
+                // Primero, limpia cualquier resaltado manual (mouseover)
                 if (highlightLayer && highlightLayer.defaultOptions && highlightLayer.defaultOptions.style) {
                     highlightLayer.setStyle(highlightLayer.defaultOptions.style);
                 }
@@ -138,6 +140,20 @@
                 }
                 highlightLayer = null;
             }
+
+            // Función para limpiar todos los resaltados de búsqueda
+            function clearSearchHighlights() {
+                highlightedSearchLayers.forEach(function(layer) {
+                    if (layer.defaultOptions && layer.defaultOptions.style) {
+                        layer.setStyle(layer.defaultOptions.style);
+                    } else {
+                        // Si no hay defaultOptions, restaurar el estilo original basado en la categoría
+                        layer.setStyle(style_union_2_0(layer.feature));
+                    }
+                });
+                highlightedSearchLayers = []; // Vaciar el array
+            }
+
 
             var map = L.map('map', {
                 zoomControl:true, maxZoom:28, minZoom:1
@@ -302,44 +318,80 @@
             });
             setBounds();
 
-            // --- CÓDIGO ORIGINAL DEL BUSCADOR (BUSCA POR 'Name') ---
-            map.addControl(new L.Control.Search({
+            // --- INICIO CÓDIGO DEL BUSCADOR POR CATEGORÍA CON RESALTADO ---
+            var searchControl = new L.Control.Search({
                 layer: layer_union_2,
                 initial: false,
                 hideMarkerOnCollapse: true,
-                propertyName: 'Name', // Vuelve a buscar por la propiedad 'Name'
-                zoom: 16 // Zoom por defecto a la entidad encontrada
-            }));
+                propertyName: 'Name', // Buscar por la propiedad 'Name' (Categoría)
+                zoom: 16, // Este zoom será anulado por nuestro fitBounds si hay múltiples resultados
+                marker: false, // Desactivar el marcador por defecto
+                textPlaceholder: 'Buscar por Categoría...' // Texto en el buscador
+            });
+            map.addControl(searchControl);
 
-            document.getElementsByClassName('search-button')[0].className +=
-                ' fa fa-binoculars';
-            // --- FIN CÓDIGO ORIGINAL DEL BUSCADOR ---
+            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
 
-            // --- CÓDIGO PARA LA LEYENDA PERSONALIZADA ---
-            var legend = L.control({position: 'bottomright'});
+            // Escuchar el evento 'search:locationfound' para manejar los resultados
+            searchControl.on('search:locationfound', function(e) {
+                clearSearchHighlights(); // Limpiar resaltados anteriores
 
-            legend.onAdd = function (map) {
-                var div = L.DomUtil.create('div', 'info legend');
-                div.innerHTML += '<div class="legend-title">Categorías</div>';
+                if (e.layer) { // e.layer es la capa encontrada por el buscador (una única característica)
+                    var searchedCategory = e.text; // El texto que se buscó
 
-                var categories = [
-                    { name: 'Monitoreo o muestreo de la especie', color: 'deepskyblue' },
-                    { name: 'Iniciativas de Educación y difusión', color: 'yellow' },
-                    { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
-                    { name: 'Reducción o mitigación de amenazas', color: 'red' }
-                ];
+                    // Recolectar todas las capas (puntos) que pertenecen a esta categoría
+                    var matchingLayers = [];
+                    layer_union_2.eachLayer(function(layer) {
+                        // Asegurarse de que layer.feature.properties.Name exista y sea una cadena
+                        if (layer.feature && layer.feature.properties && layer.feature.properties.Name) {
+                            // Comparar el nombre de la categoría (sin distinguir mayúsculas/minúsculas)
+                            if (String(layer.feature.properties.Name).toLowerCase() === searchedCategory.toLowerCase()) {
+                                matchingLayers.push(layer);
+                            }
+                        }
+                    });
 
-                for (var i = 0; i < categories.length; i++) {
-                    div.innerHTML +=
-                        '<div class="legend-item">' +
-                            '<span class="legend-symbol" style="background:' + categories[i].color + '"></span>' +
-                            '<span>' + categories[i].name + '</span>' +
-                        '</div>';
+                    if (matchingLayers.length > 0) {
+                        var group = new L.featureGroup(matchingLayers);
+                        map.fitBounds(group.getBounds(), { padding: [50, 50] }); // Zoom a todos los resultados
+
+                        // Resaltar las capas encontradas
+                        matchingLayers.forEach(function(layer) {
+                            // Guardar el estilo original antes de modificarlo para poder restaurarlo
+                            layer.defaultOptions = layer.defaultOptions || {};
+                            layer.defaultOptions.style = JSON.parse(JSON.stringify(layer.options));
+
+                            layer.setStyle({
+                                fillColor: 'yellow', // Color de resaltado
+                                opacity: 1,
+                                color: 'black', // Borde negro para mayor visibilidad
+                                weight: 2,
+                                radius: 10 // Un poco más grande para destacarse
+                            });
+                            highlightedSearchLayers.push(layer); // Almacenar para limpiar después
+                        });
+
+                    } else {
+                        // Esto podría suceder si el buscador encuentra algo, pero nuestro filtro no (ej. problema de coincidencia exacta)
+                        // Para categorías, usualmente la búsqueda es exacta.
+                        alert('No se encontraron iniciativas de la categoría "' + searchedCategory + '".');
+                    }
                 }
-                return div;
-            };
-            legend.addTo(map);
-            // --- FIN DEL CÓDIGO DE LEYENDA ---
+            });
+
+            // Escuchar el evento 'search:cancel' o 'search:collapsed' para limpiar los resaltados
+            searchControl.on('search:cancel', function() {
+                clearSearchHighlights();
+            });
+            searchControl.on('search:collapsed', function() {
+                // También limpiar cuando el buscador se colapsa (si no es por un resultado)
+                // Ojo: 'search:collapsed' se dispara también después de 'search:locationfound'
+                // Por eso, la limpieza inicial en 'search:locationfound' es importante.
+                if (highlightedSearchLayers.length > 0) { // Solo limpiar si hay algo resaltado
+                    clearSearchHighlights();
+                }
+            });
+            // --- FIN CÓDIGO DEL BUSCADOR POR CATEGORÍA CON RESALTADO ---
 
             // --- CÓDIGO PARA MOSTRAR COORDENADAS DEL CURSOR (LAT/LNG y UTM) ---
 
