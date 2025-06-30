@@ -78,7 +78,7 @@
                 border: 1px solid #ccc;
                 border-radius: 3px;
                 font-size: 14px;
-                width: 220px; /* Aumentado para el mensaje más largo */
+                width: 250px; /* Ancho ajustado para el nuevo placeholder */
             }
             .coordinates-search-control button {
                 padding: 5px 10px;
@@ -99,7 +99,7 @@
         <div id="map"></div>
 
         <div class="coordinates-search-control">
-            <input type="text" id="coordInput" placeholder="Latitud, Longitud (ej: -33.456789, -70.661234)">
+            <input type="text" id="coordInput" placeholder="Latitud Longitud (ej: -39.300748 -72.211707)">
             <button id="searchCoordBtn">Ir</button>
         </div>
 
@@ -356,28 +356,26 @@
             // --- CÓDIGO PARA EL BUSCADOR DE COORDENADAS ---
             document.getElementById('searchCoordBtn').addEventListener('click', function() {
                 var coordInput = document.getElementById('coordInput').value;
-                var parts = coordInput.split(',').map(part => parseFloat(part.trim()));
+                // Usar split(/\s+/) para dividir por uno o más espacios en blanco
+                var parts = coordInput.trim().split(/\s+/).map(part => parseFloat(part));
 
                 if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
                     var lat = parts[0];
                     var lon = parts[1];
                     map.setView([lat, lon], 15);
                     
-                    // Remueve el marcador temporal existente si hay uno
                     if (window.tempMarker) {
                         map.removeLayer(window.tempMarker);
                     }
-                    // Añade un nuevo marcador temporal con la precisión deseada en el popup
                     window.tempMarker = L.marker([lat, lon]).addTo(map)
-                        // .toFixed(6) formatea el número a 6 decimales para el popup
+                        // Asegurar el formato de 6 decimales para el popup
                         .bindPopup(`Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`).openPopup();
 
                 } else {
-                    alert('Por favor, introduce las coordenadas en el formato "Latitud, Longitud" con al menos 6 decimales (ej: -33.456789, -70.661234).');
+                    alert('Por favor, introduce las coordenadas en el formato "Latitud Longitud" (ej: -39.300748 -72.211707).');
                 }
             });
 
-            // Permite buscar al presionar Enter en el campo de texto
             document.getElementById('coordInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     document.getElementById('searchCoordBtn').click();
