@@ -143,15 +143,18 @@
 
             // Función para limpiar todos los resaltados de búsqueda
             function clearSearchHighlights() {
-                highlightedSearchLayers.forEach(function(layer) {
-                    if (layer.defaultOptions && layer.defaultOptions.style) {
-                        layer.setStyle(layer.defaultOptions.style);
-                    } else {
-                        // Si no hay defaultOptions, restaurar el estilo original basado en la categoría
-                        layer.setStyle(style_union_2_0(layer.feature));
-                    }
-                });
-                highlightedSearchLayers = []; // Vaciar el array
+                if (highlightedSearchLayers.length > 0) { // Solo limpiar si hay algo resaltado
+                    highlightedSearchLayers.forEach(function(layer) {
+                        if (layer.defaultOptions && layer.defaultOptions.style) {
+                            layer.setStyle(layer.defaultOptions.style);
+                        } else {
+                            // Si no hay defaultOptions, restaurar el estilo original basado en la categoría
+                            layer.setStyle(style_union_2_0(layer.feature));
+                        }
+                    });
+                    highlightedSearchLayers = []; // Vaciar el array
+                    console.log("Resaltados de búsqueda eliminados."); // Para depuración
+                }
             }
 
 
@@ -223,6 +226,12 @@
                 layer.on({
                     mouseout: resetHighlight,
                     mouseover: highlightFeature,
+                    click: function(e) { // AÑADIDO: Manejar clic en una capa
+                        clearSearchHighlights(); // Limpiar cualquier resaltado de búsqueda anterior
+                        // Opcional: Aquí podrías añadir alguna lógica de resaltado temporal para el punto clickeado si lo deseas,
+                        // pero `highlightFeature` ya maneja el mouseover/mouseout.
+                        // Si quieres que el punto clickeado se quede resaltado, necesitarías una lógica diferente.
+                    }
                 });
                 var popupContent = '<table>\
                     <tr>\
@@ -382,22 +391,26 @@
                 clearSearchHighlights();
             });
             searchControl.on('search:collapsed', function() {
-                if (highlightedSearchLayers.length > 0) {
+                // Se dispara después de search:locationfound también, la limpieza inicial en locationfound es clave.
+                // Aquí solo limpiamos si el buscador se colapsa sin una búsqueda nueva.
+                if (searchControl._lastSearchText === "" && highlightedSearchLayers.length > 0) { // Añadido _lastSearchText para evitar doble limpieza.
                     clearSearchHighlights();
                 }
             });
             // --- FIN CÓDIGO DEL BUSCADOR POR CATEGORÍA CON RESALTADO ---
 
-            // --- INICIO: NUEVO CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
+            // --- INICIO: CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
             map.on('click', function(e) {
-                // Verificar si el clic NO fue sobre una capa (punto)
-                // Usamos e.originalEvent.target para ver si el elemento clicado es el contenedor del mapa y no un SVG de un punto
-                // También verificamos si hay algún resaltado activo para limpiar
-                if (e.originalEvent.target.classList.contains('leaflet-container') && highlightedSearchLayers.length > 0) {
-                     clearSearchHighlights();
+                // La idea es limpiar si el clic no es capturado por una capa
+                // o si es sobre el mapa base directamente.
+                // e.originalEvent.target es el elemento DOM clicado.
+                // Si es un SVGElement (un punto del mapa), la capa ya maneja el clic.
+                // Si es el contenedor del mapa o algo más, entonces limpiamos.
+                if (!(e.originalEvent.target instanceof SVGElement) && highlightedSearchLayers.length > 0) {
+                    clearSearchHighlights();
                 }
             });
-            // --- FIN: NUEVO CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
+            // --- FIN: CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
 
 
             // --- CÓDIGO PARA LA LEYENDA PERSONALIZADA ---
