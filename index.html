@@ -251,7 +251,7 @@
                 if (nameLower.includes('monitoreo o muestreo de la especie')) {
                     return 'deepskyblue';
                 } else if (nameLower.includes('iniciativas de educación y difusión')) {
-                    return 'white'; // CAMBIO AQUÍ: Amarillo a blanco
+                    return 'white';
                 } else if (nameLower.includes('relevamiento de informacion sobre relacion guigna-humanos')) {
                     return 'lime';
                 } else if (nameLower.includes('reducción o mitigación de amenazas')) {
@@ -388,6 +388,18 @@
             });
             // --- FIN CÓDIGO DEL BUSCADOR POR CATEGORÍA CON RESALTADO ---
 
+            // --- INICIO: NUEVO CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
+            map.on('click', function(e) {
+                // Verificar si el clic NO fue sobre una capa (punto)
+                // Usamos e.originalEvent.target para ver si el elemento clicado es el contenedor del mapa y no un SVG de un punto
+                // También verificamos si hay algún resaltado activo para limpiar
+                if (e.originalEvent.target.classList.contains('leaflet-container') && highlightedSearchLayers.length > 0) {
+                     clearSearchHighlights();
+                }
+            });
+            // --- FIN: NUEVO CÓDIGO PARA LIMPIAR AL HACER CLIC EN EL MAPA ---
+
+
             // --- CÓDIGO PARA LA LEYENDA PERSONALIZADA ---
             var legend = L.control({position: 'bottomright'});
 
@@ -397,7 +409,7 @@
 
                 var categories = [
                     { name: 'Monitoreo o muestreo de la especie', color: 'deepskyblue' },
-                    { name: 'Iniciativas de Educación y difusión', color: 'white' }, // CAMBIO AQUÍ: Amarillo a blanco en la leyenda
+                    { name: 'Iniciativas de Educación y difusión', color: 'white' },
                     { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
                     { name: 'Reducción o mitigación de amenazas', color: 'red' }
                 ];
@@ -405,7 +417,7 @@
                 for (var i = 0; i < categories.length; i++) {
                     div.innerHTML +=
                         '<div class="legend-item">' +
-                            '<span class="legend-symbol" style="background:' + categories[i].color + '; border: 1px solid rgba(35,35,35,0.8);"></span>' + // Añadido borde para el blanco
+                            '<span class="legend-symbol" style="background:' + categories[i].color + '; border: 1px solid rgba(35,35,35,0.8);"></span>' +
                             '<span>' + categories[i].name + '</span>' +
                         '</div>';
                 }
