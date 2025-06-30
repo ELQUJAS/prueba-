@@ -251,7 +251,7 @@
                 if (nameLower.includes('monitoreo o muestreo de la especie')) {
                     return 'deepskyblue';
                 } else if (nameLower.includes('iniciativas de educación y difusión')) {
-                    return 'yellow';
+                    return 'white'; // CAMBIO AQUÍ: Amarillo a blanco
                 } else if (nameLower.includes('relevamiento de informacion sobre relacion guigna-humanos')) {
                     return 'lime';
                 } else if (nameLower.includes('reducción o mitigación de amenazas')) {
@@ -362,7 +362,7 @@
                             layer.defaultOptions.style = JSON.parse(JSON.stringify(layer.options));
 
                             layer.setStyle({
-                                fillColor: 'yellow', // Color de resaltado
+                                fillColor: 'yellow', // El color de resaltado de la búsqueda sigue siendo amarillo
                                 opacity: 1,
                                 color: 'black', // Borde negro para mayor visibilidad
                                 weight: 2,
@@ -382,10 +382,7 @@
                 clearSearchHighlights();
             });
             searchControl.on('search:collapsed', function() {
-                // También limpiar cuando el buscador se colapsa (si no es por un resultado)
-                // Ojo: 'search:collapsed' se dispara también después de 'search:locationfound'
-                // Por eso, la limpieza inicial en 'search:locationfound' es importante.
-                if (highlightedSearchLayers.length > 0) { // Solo limpiar si hay algo resaltado
+                if (highlightedSearchLayers.length > 0) {
                     clearSearchHighlights();
                 }
             });
@@ -400,7 +397,7 @@
 
                 var categories = [
                     { name: 'Monitoreo o muestreo de la especie', color: 'deepskyblue' },
-                    { name: 'Iniciativas de Educación y difusión', color: 'yellow' },
+                    { name: 'Iniciativas de Educación y difusión', color: 'white' }, // CAMBIO AQUÍ: Amarillo a blanco en la leyenda
                     { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
                     { name: 'Reducción o mitigación de amenazas', color: 'red' }
                 ];
@@ -408,7 +405,7 @@
                 for (var i = 0; i < categories.length; i++) {
                     div.innerHTML +=
                         '<div class="legend-item">' +
-                            '<span class="legend-symbol" style="background:' + categories[i].color + '"></span>' +
+                            '<span class="legend-symbol" style="background:' + categories[i].color + '; border: 1px solid rgba(35,35,35,0.8);"></span>' + // Añadido borde para el blanco
                             '<span>' + categories[i].name + '</span>' +
                         '</div>';
                 }
