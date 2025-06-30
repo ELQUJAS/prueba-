@@ -302,42 +302,61 @@
             });
             setBounds();
 
-            map.addControl(new L.Control.Search({
+            // --- INICIO CÓDIGO DEL BUSCADOR POR ACADÉMICO ---
+            // Modificar el L.Control.Search para buscar por 'Academicos'
+            var searchControl = new L.Control.Search({
                 layer: layer_union_2,
                 initial: false,
                 hideMarkerOnCollapse: true,
-                propertyName: 'Name',
-                zoom: 16
-            }));
+                propertyName: 'Academicos', // Buscar por la propiedad 'Academicos'
+                zoom: 16, // Zoom por defecto si encuentra solo un resultado
+                autoCollapse: true, // Colapsar después de la búsqueda
+                autoType: false, // No autocompletar, esperar al Enter
+                marker: false, // Desactivar el marcador por defecto
+                textPlaceholder: 'Buscar por Académico...' // Texto en el buscador
+            });
+            map.addControl(searchControl);
 
-            document.getElementsByClassName('search-button')[0].className +=
-                ' fa fa-binoculars';
+            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
 
-            // --- CÓDIGO PARA LA LEYENDA PERSONALIZADA ---
-            var legend = L.control({position: 'bottomright'});
+            // Escuchar el evento 'search:locationfound' para manejar los resultados
+            searchControl.on('search:locationfound', function(e) {
+                if (e.layer) { // e.layer es la capa encontrada por el buscador (una única característica)
+                    var searchedAcademic = e.text; // El texto que se buscó
 
-            legend.onAdd = function (map) {
-                var div = L.DomUtil.create('div', 'info legend');
-                div.innerHTML += '<div class="legend-title">Categorías</div>';
+                    // Recolectar todas las capas (puntos) que contienen este académico
+                    var matchingLayers = [];
+                    layer_union_2.eachLayer(function(layer) {
+                        // Asegurarse de que layer.feature.properties.Academicos exista y sea una cadena
+                        if (layer.feature && layer.feature.properties && layer.feature.properties.Academicos) {
+                            // Buscar el nombre del académico (sin distinguir mayúsculas/minúsculas)
+                            if (String(layer.feature.properties.Academicos).toLowerCase().includes(searchedAcademic.toLowerCase())) {
+                                matchingLayers.push(layer);
+                            }
+                        }
+                    });
 
-                var categories = [
-                    { name: 'Monitoreo o muestreo de la especie', color: 'deepskyblue' },
-                    { name: 'Iniciativas de Educación y difusión', color: 'yellow' },
-                    { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
-                    { name: 'Reducción o mitigación de amenazas', color: 'red' }
-                ];
-
-                for (var i = 0; i < categories.length; i++) {
-                    div.innerHTML +=
-                        '<div class="legend-item">' +
-                            '<span class="legend-symbol" style="background:' + categories[i].color + '"></span>' +
-                            '<span>' + categories[i].name + '</span>' +
-                        '</div>';
+                    if (matchingLayers.length > 0) {
+                        var group = new L.featureGroup(matchingLayers);
+                        map.fitBounds(group.getBounds(), { padding: [50, 50] }); // Zoom a todos los resultados
+                    } else {
+                        // Esto podría suceder si el buscador encuentra algo, pero nuestro filtro no (ej. búsqueda parcial)
+                        // O si el layer es solo una referencia y no tiene las propiedades esperadas.
+                        alert('No se encontraron iniciativas para "' + searchedAcademic + '".');
+                    }
+                } else {
+                    // Si no se encuentra ninguna capa, el buscador puede disparar 'search:locationfound' sin e.layer
+                    // o directamente 'search:emptylocation'.
+                    // Para este caso, no hacemos nada o mostramos un mensaje general.
+                    // El buscador ya muestra "Nada encontrado".
                 }
-                return div;
-            };
-            legend.addTo(map);
-            // --- FIN DEL CÓDIGO DE LEYENDA ---
+            });
+
+            searchControl.on('search:emptylocation', function(e) {
+                alert('El académico "' + e.text + '" no fue encontrado en las iniciativas.');
+            });
+
+            // --- FIN CÓDIGO DEL BUSCADOR POR ACADÉMICO ---
 
             // --- CÓDIGO PARA MOSTRAR COORDENADAS DEL CURSOR (LAT/LNG y UTM) ---
 
