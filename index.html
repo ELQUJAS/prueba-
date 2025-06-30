@@ -1,9 +1,3 @@
-Looks like we've been circling back on the legend title! Apologies for any confusion.
-
-The code you just provided still has "Categorías de Iniciativas" in the legend's HTML. To ensure it says just "Categorías", you need to make this small edit in the legend.onAdd function:
-
-HTML
-
 <!doctype html>
 <html lang="en">
     <head>
@@ -210,16 +204,17 @@ HTML
                 const nameLower = String(nombre).toLowerCase();
 
                 if (nameLower.includes('monitoreo o muestreo de la especie')) {
-                    return 'deepskyblue';
+                    return 'deepskyblue'; // Celeste
                 } else if (nameLower.includes('iniciativas de educación y difusión')) {
-                    return 'yellow';
+                    return 'yellow'; // Amarillo
                 } else if (nameLower.includes('relevamiento de informacion sobre relacion guigna-humanos')) {
-                    return 'lime';
+                    return 'lime'; // Verde
                 } else if (nameLower.includes('reducción o mitigación de amenazas')) {
-                    return 'red';
-                } else {
-                    return '#808080';
+                    return 'red'; // Rojo
                 }
+                // Eliminada la condición 'else' para "Otras", si el nombre no coincide, no tendrá un color específico aquí.
+                // Si quieres que los puntos sin categoría explícita no aparezcan o tengan otro color, ajusta según necesidad.
+                return '#808080'; // Color por defecto si no coincide con ninguna de las categorías listadas.
             }
 
             function style_union_2_0(feature) {
@@ -296,15 +291,14 @@ HTML
 
             legend.onAdd = function (map) {
                 var div = L.DomUtil.create('div', 'info legend');
-                // CAMBIO AQUÍ: Modificado para que diga solo "Categorías"
                 div.innerHTML += '<div class="legend-title">Categorías</div>';
 
                 var categories = [
                     { name: 'Monitoreo o muestreo de la especie', color: 'deepskyblue' },
                     { name: 'Iniciativas de Educación y difusión', color: 'yellow' },
                     { name: 'Relevamiento de información sobre relación güiña-humanos', color: 'lime' },
-                    { name: 'Reducción o mitigación de amenazas', color: 'red' },
-                    { name: 'Otras', color: '#808080' }
+                    { name: 'Reducción o mitigación de amenazas', color: 'red' }
+                    // La categoría "Otras" ha sido eliminada de aquí.
                 ];
 
                 for (var i = 0; i < categories.length; i++) {
