@@ -1,9 +1,3 @@
-¡Entendido! Vamos a eliminar el código que añade la imagen al mapa.
-
-Aquí tienes el código HTML completo, con la sección de la superposición de imagen completamente retirada:
-
-HTML
-
 <!doctype html>
 <html lang="en">
     <head>
@@ -62,6 +56,12 @@ HTML
                 flex-shrink: 0;
             }
             /* --- FIN DE ESTILOS DE LEYENDA --- */
+
+            /* --- ESTILO PARA JUSTIFICAR TEXTO EN POP-UPS --- */
+            .leaflet-popup-content {
+                text-align: justify;
+            }
+            /* --- FIN DE ESTILO PARA JUSTIFICAR TEXTO EN POP-UPS --- */
         </style>
     </head>
     <body>
@@ -265,13 +265,10 @@ HTML
                 "OpenStreetMap": layer_OpenStreetMap_1
             };
 
-            // Original overlayMaps sin la imagen, para restaurar el control de capas
             var overlayMaps = {
                 "Iniciativas": layer_union_2
             };
 
-            // Asegúrate de que el control de capas se inicialice solo una vez
-            // Si ya tenías esta línea antes, no es necesario duplicarla
             L.control.layers(baseMaps, overlayMaps, {
                 collapsed: false
             }).addTo(map);
@@ -320,7 +317,6 @@ HTML
             legend.addTo(map);
             // --- FIN DEL CÓDIGO DE LEYENDA ---
 
-            // Se ha eliminado el código JavaScript para añadir la imagen al mapa.
         </script>
     </body>
 </html>
